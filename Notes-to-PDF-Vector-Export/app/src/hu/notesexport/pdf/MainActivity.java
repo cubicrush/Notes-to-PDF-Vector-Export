@@ -56,7 +56,9 @@ public final class MainActivity extends Activity {
     private TextView fileLabel;
     private TextView status;
     private Button choose;
-    private Button save, imageExport, vectorExport, privacyButton;
+    private Button save, imageExport, vectorExport, privacyButton, ageButton;
+    private int ageGroup = AgePolicy.UNKNOWN;
+    private boolean ageDialogOpen;
     private AdsController ads;
     private boolean vectorUnlocked, vectorMode, adShowing, destinationOpen;
     private int generation;
@@ -87,10 +89,12 @@ public final class MainActivity extends Activity {
                 status.setText("In Samsung Notes, choose Share, then Samsung Notes file (.sdocx), then this app.");
             }
         }
-        ads = new AdsController(this, () -> updateButtons());
+        ageGroup = AgePolicy.normalize(getPreferences(MODE_PRIVATE).getInt("age_group", AgePolicy.UNKNOWN));
+        ads = new AdsController(this, () -> updateButtons(), ageGroup);
         setupEngine();
         ads.start();
         updateButtons();
+        if (ageGroup == AgePolicy.UNKNOWN) showAgeGroup();
     }
 
     private int dp(float value) {
@@ -180,6 +184,8 @@ public final class MainActivity extends Activity {
         add(column, text("Free image export is unlimited and works offline. Complete a rewarded ad to unlock vector export for the selected note.", 15, MUTED, false), 12);
         privacyButton = button("Ad privacy choices", false);
         privacyButton.setOnClickListener(v -> ads.privacy()); add(column, privacyButton, 8);
+        ageButton = button("Age group & ad settings", false);
+        ageButton.setOnClickListener(v -> showAgeGroup()); add(column, ageButton, 8);
         Button notices = button("Privacy & open-source notices", false);
         notices.setOnClickListener(v -> showPrivacy()); add(column, notices, 8);
         add(column, text("Independent app. Not affiliated with or endorsed by Samsung. Samsung Notes is a trademark of its owner.", 13, MUTED, false), 18);
@@ -264,14 +270,15 @@ public final class MainActivity extends Activity {
     }
 
     private void updateButtons() {
-        boolean idle = ready && !busy && !adShowing && !destinationOpen;
+        boolean idle = ready && !busy && !adShowing && !destinationOpen && !ageDialogOpen;
         choose.setEnabled(idle);
         imageExport.setEnabled(idle && note != null);
         vectorExport.setEnabled(idle && note != null);
         boolean entitled = vectorUnlocked;
         vectorExport.setText(entitled ? "Convert to vector PDF" : "Watch ad for vector PDF");
         privacyButton.setVisibility(ads != null && ads.privacyRequired() ? View.VISIBLE : View.GONE);
-        privacyButton.setEnabled(!busy && !adShowing);
+        privacyButton.setEnabled(!busy && !adShowing && !ageDialogOpen && !destinationOpen);
+        ageButton.setEnabled(!busy && !adShowing && !destinationOpen && !ageDialogOpen);
         choose.setAlpha(choose.isEnabled() ? 1f : .5f);
         save.setEnabled(converted && !busy && !adShowing && !destinationOpen);
         save.setAlpha(save.isEnabled() ? 1f : .5f);
@@ -348,6 +355,11 @@ public final class MainActivity extends Activity {
     private void requestVector() {
         if (!ready || busy || adShowing || note == null) return;
         if (vectorUnlocked) { startConversion(true); return; }
+        if (ageGroup == AgePolicy.UNKNOWN) { showAgeGroup(); return; }
+        if (!AgePolicy.adsEligible(ageGroup)) {
+            status.setText("Rewarded ads are unavailable for this age setting. Free image PDF export is available.");
+            return;
+        }
         new AlertDialog.Builder(this).setTitle("Unlock vector export")
             .setMessage("Complete a rewarded ad to unlock vector export for this note. Closing it before earning the reward will not unlock export. Free image export remains available.")
             .setNegativeButton("Cancel", null).setPositiveButton("Watch ad", (dialog, which) -> {
@@ -399,6 +411,41 @@ public final class MainActivity extends Activity {
         });
     }
 
+    private void showAgeGroup() {
+        if (ageDialogOpen || busy || adShowing || destinationOpen || isFinishing()) return;
+        ageDialogOpen = true;
+        if (ads != null) ads.close(); // Discard in-flight/cached ads before changing profile.
+        updateButtons();
+        String[] choices = {"Under 13", "13–15", "16–17", "18 or older"};
+        final int[] selected = {AgePolicy.UNKNOWN};
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Choose your age group")
+            .setSingleChoiceItems(choices, -1, (d, which) -> {
+                selected[0] = which;
+                ((AlertDialog) d).getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+            })
+            .setPositiveButton("Continue", (d, which) -> applyAgeGroup(selected[0]))
+            .setNegativeButton("Skip ads", (d, which) -> applyAgeGroup(AgePolicy.UNKNOWN))
+            .setOnCancelListener(d -> applyAgeGroup(AgePolicy.UNKNOWN))
+            .create();
+        TextView explanation = text("Choose your age group\n\nUsed for age-appropriate advertising. Only the age group is stored on this device, not your date of birth. You can skip this and use free image export.", 15, MUTED, false);
+        explanation.setPadding(dp(24), dp(12), dp(24), dp(12));
+        dialog.setCustomTitle(explanation);
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false));
+        dialog.show();
+    }
+
+    private void applyAgeGroup(int value) {
+        if (isDestroyed()) return;
+        int next = AgePolicy.normalize(value);
+        if (ageGroup != next) vectorUnlocked = false;
+        ageGroup = next;
+        getPreferences(MODE_PRIVATE).edit().putInt("age_group", ageGroup).apply();
+        ageDialogOpen = false;
+        ads = new AdsController(this, () -> updateButtons(), ageGroup);
+        ads.start(); updateButtons();
+    }
+
     private void showPrivacy() {
         java.util.List<String> labels = new java.util.ArrayList<>();
         java.util.List<Runnable> actions = new java.util.ArrayList<>();
@@ -425,8 +472,8 @@ public final class MainActivity extends Activity {
 
     private void showDataSummary() {
         new AlertDialog.Builder(this).setTitle("Privacy policy (preview)")
-                .setMessage("Publisher: Balog Gergely Sándor. Privacy contact: alogergely@gmail.com. The public privacy policy and remaining disclosures must be completed before publication.\n\nNotes are processed on your device. The app reads the files you select or share and writes PDFs to the location you choose. Temporary PDFs are stored in the app cache. You can clear that cache in Android settings. Saved PDFs remain at the location you chose."
-                        + "\n\nGoogle advertising services may process device and ad interaction data. Use Ad privacy choices when available to change your preferences. Free image export works offline."
+                .setMessage("Publisher: Balog Gergely Sándor. Privacy contact: alogergely@gmail.com. Support emails and their attachments are deleted one month after the support case is closed. This preview still requires release testing.\n\nNotes are processed on your device. The app reads the files you select or share and writes PDFs to the location you choose. Temporary PDFs are stored in the app cache. You can clear that cache in Android settings. Saved PDFs remain at the location you chose."
+                        + "\n\nGoogle AdMob is the only integrated advertising service. It may process device and ad interaction data. The app is intended for high-school and university students. Your age group is stored locally. Under-18 users receive restricted advertising; under-13 users and users who skip the age choice receive no rewarded ads. Change your selection in Age group & ad settings. Use Ad privacy choices when available to change your preferences. Free image export works offline."
                         + "\n\nThis is an independent app and is not affiliated with Samsung.")
                 .setPositiveButton("OK", null).show();
     }
