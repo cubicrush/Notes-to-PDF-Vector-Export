@@ -1,0 +1,61 @@
+plugins { id 'com.android.application' }
+def pub = new Properties()
+def pubFile = rootProject.file('publisher.properties')
+if (pubFile.exists()) pubFile.withInputStream { pub.load(it) }
+def value = { key, fallback -> pub.getProperty(key, fallback) }
+def quoted = { text -> '"' + text.replace('\\', '\\\\').replace('"','\\"') + '"' }
+android {
+    namespace 'hu.notesexport.pdf'
+    compileSdk 36
+    buildToolsVersion '36.0.0'
+    defaultConfig {
+        applicationId 'hu.notesexport.pdf.fixed'
+        minSdk 26
+        targetSdk 36
+        versionCode 10
+        versionName '1.7.2-preview'
+        buildConfigField 'String', 'PRIVACY_URL', quoted(value('privacyUrl',''))
+        buildConfigField 'String', 'SOURCE_URL', quoted(value('sourceUrl','https://github.com/cubicrush/Notes-to-PDF-Vector-Export'))
+    }
+    buildFeatures { buildConfig true }
+    sourceSets {
+        main { manifest.srcFile 'AndroidManifest.xml'; java.srcDirs = ['src']; assets.srcDirs = ['assets']; res.srcDirs = ['res'] }
+        test { java.srcDirs = ['tests'] }
+    }
+    signingConfigs {
+        publisher {
+            if (pub.getProperty('keystorePath')) storeFile rootProject.file(pub.getProperty('keystorePath'))
+            storePassword System.getenv('NOTES_STORE_PASSWORD')
+            keyAlias value('keyAlias','upload')
+            keyPassword System.getenv('NOTES_KEY_PASSWORD')
+        }
+    }
+    buildTypes {
+        debug {
+            manifestPlaceholders = [admobAppId: 'ca-app-pub-3940256099942544~3347511713']
+            buildConfigField 'String', 'REWARDED_AD_UNIT', '"ca-app-pub-3940256099942544/5224354917"'
+        }
+        release {
+            signingConfig signingConfigs.publisher
+            manifestPlaceholders = [admobAppId: value('admobAppId','unconfigured')]
+            buildConfigField 'String', 'REWARDED_AD_UNIT', quoted(value('rewardedAdUnitId',''))
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+}
+dependencies {
+    implementation 'com.google.android.gms:play-services-ads:25.5.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
+    testImplementation 'junit:junit:4.13.2'
+}
+tasks.register('verifyPublisherConfiguration') {
+    doLast {
+        ['admobAppId','rewardedAdUnitId','privacyUrl','sourceUrl','keystorePath'].each {
+            if (!pub.getProperty(it)) throw new GradleException('Missing publisher.properties value: ' + it)
+        }
+        if (!(pub.admobAppId ==~ /ca-app-pub-[0-9]{16}~[0-9]{10}/) || !(pub.rewardedAdUnitId ==~ /ca-app-pub-[0-9]{16}\/[0-9]{10}/)) throw new GradleException('Invalid AdMob IDs')
+        if (pub.admobAppId.contains('3940256099942544') || pub.rewardedAdUnitId.contains('3940256099942544')) throw new GradleException('Use your own AdMob IDs and app-level test mode for Play builds')
+        ['privacyUrl','sourceUrl'].each { if (!pub.getProperty(it).startsWith('https://')) throw new GradleException('HTTPS URL required: ' + it) }
+    }
+}
+tasks.configureEach { if (name == 'preReleaseBuild') dependsOn 'verifyPublisherConfiguration' }

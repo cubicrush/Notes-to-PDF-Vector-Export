@@ -1,0 +1,7 @@
+@pdf-lib/fontkit 1.1.1
+Author: Andrew Dillon
+License: MIT (package.json)
+Repository: https://github.com/Hopding/fontkit
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)

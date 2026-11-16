@@ -1,0 +1,15 @@
+**/.gradle/
+**/build/
+**/target/
+**/node_modules/
+local.properties
+publisher.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+*.apk
+*.aab
+.env
+.env.*
+.DS_Store

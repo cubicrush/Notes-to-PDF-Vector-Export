@@ -1,0 +1,9 @@
+# Copy to publisher.properties. Never commit signing secrets.
+admobAppId=
+rewardedAdUnitId=
+privacyUrl=https://cubicrush.github.io/Notes-to-PDF-Vector-Export/privacy.html
+sourceUrl=https://github.com/cubicrush/Notes-to-PDF-Vector-Export
+keystorePath=
+keyAlias=upload
+# Closed Play testing: enable AdMob Settings > Test apps for the exact version.
+# Set signing passwords via NOTES_STORE_PASSWORD / NOTES_KEY_PASSWORD.
