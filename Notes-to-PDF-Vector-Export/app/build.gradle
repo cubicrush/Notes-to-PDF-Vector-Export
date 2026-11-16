@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 def pub = new Properties()
 def pubFile = rootProject.file('publisher.properties')
 if (pubFile.exists()) pubFile.withInputStream { pub.load(it) }
-def value = { key, fallback -> pub.getProperty(key, fallback) }
+def value = { key, fallback -> pub.getProperty(key)?.trim() ?: fallback }
 def quoted = { text -> '"' + text.replace('\\', '\\\\').replace('"','\\"') + '"' }
 android {
     namespace 'hu.notesexport.pdf'
@@ -12,10 +12,10 @@ android {
         applicationId 'hu.notesexport.pdf.fixed'
         minSdk 26
         targetSdk 36
-        versionCode 10
-        versionName '1.7.2-preview'
-        buildConfigField 'String', 'PRIVACY_URL', quoted(value('privacyUrl',''))
-        buildConfigField 'String', 'SOURCE_URL', quoted(value('sourceUrl','https://github.com/cubicrush/Notes-to-PDF-Vector-Export'))
+        versionCode 11
+        versionName '1.7.3-preview'
+        buildConfigField 'String', 'PRIVACY_URL', quoted(value('privacyUrl','https://cubicrush.github.io/Notes-to-PDF-Vector-Export/Notes-to-PDF-Vector-Export/docs/privacy.html'))
+        buildConfigField 'String', 'SOURCE_URL', quoted(value('sourceUrl','https://github.com/cubicrush/Notes-to-PDF-Vector-Export/tree/main/Notes-to-PDF-Vector-Export'))
     }
     buildFeatures { buildConfig true }
     sourceSets {
