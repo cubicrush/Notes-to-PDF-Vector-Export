@@ -30,4 +30,4 @@ Support messages and attachments: publisher deletes them one month after the cas
 The public policy remains a pre-release draft until publisher legal-basis/configuration review and these device checks are complete. Do not claim legal certification based on a successful build. Play target audience and AdMob publisher message must be configured separately.
 
 ## Build
-The Android preview workflow builds and tests on GitHub Actions, then uploads a demo APK and reports. It uses an ephemeral debug signing key; it may not install over earlier previews without uninstalling them. No release key or account secrets are used.
+The Android preview workflow builds and tests on GitHub Actions, then uploads verification reports only; preview APKs must not be published to this public repository. It uses an ephemeral debug signing key; it may not install over earlier previews without uninstalling them. No release key or account secrets are used.
