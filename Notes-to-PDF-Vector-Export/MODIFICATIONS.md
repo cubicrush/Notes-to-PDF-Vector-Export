@@ -6,4 +6,4 @@ The 1.7.2 preview removed the Pro purchase path and Billing dependency. The subs
 
 16 November 2026: prepared this repository snapshot, added the public source URL, removed obsolete publication documents, documented the author's SDK permission, added a draft privacy page and removed bundled development signing keys. Debug signing now uses Gradle's locally generated debug key. Conversion code and assets are unchanged by this repository-preparation step.
 
-This snapshot has no newly distributed binary. Before a production release, verify the converter rebuild procedure and source-to-binary mapping, record the exact release tag, and publish the corresponding source with that release. Prior build results do not certify these publication edits or actual Android device behaviour.
+19 November 2026: version 1.7.4 adds a support email action and an offline privacy summary, and documents the one-month retention period after a support case closes. Release bundles can be signed separately using the publisher's upload key.

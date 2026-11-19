@@ -8,7 +8,7 @@ Android app that converts shared Samsung Notes (`.sdocx`) files into PDFs on the
 3. Choose free image PDF export or watch an available rewarded ad to unlock vector export for that selected note.
 4. Save the PDF using Android's document picker.
 
-Free image export works offline, without a daily quota. Vector export unlocks only after the SDK reports the reward; closing an ad early does not unlock it. Ad availability requires connectivity and is not guaranteed. Images remain raster images inside vector PDFs. This preview does not promise perfect fidelity for every Samsung Notes feature.
+Free image export works offline, without a daily quota. Vector export unlocks only after the SDK reports the reward; closing an ad early does not unlock it. Ad availability requires connectivity and is not guaranteed. Images remain raster images inside vector PDFs. Some Samsung Notes elements may render differently.
 
 There is no Pro tier, purchase or subscription.
 
@@ -22,7 +22,7 @@ chmod +x gradlew
 
 Gradle generates a local debug key. It will differ from the key used for previously supplied preview APKs, so installing over those may require uninstalling the old preview (which clears its app data).
 
-Debug uses Google's official demo AdMob IDs and bypasses publisher UMP forms. It is not a consent-flow test. Release uses publisher AdMob settings and UMP consent gating. Copy `publisher.properties.example` to `publisher.properties`, configure your own IDs, verify the live privacy/source URLs, and supply a private upload keystore. Set `NOTES_STORE_PASSWORD` and `NOTES_KEY_PASSWORD` in the environment. Never commit keys or passwords.
+Debug uses Google's official demo AdMob IDs and bypasses publisher UMP forms. It is not a consent-flow test. Release uses publisher AdMob settings and UMP consent gating. Copy `publisher.properties.example` to `publisher.properties`, configure your own IDs, verify the live privacy/source URLs, and leave `keystorePath` empty to generate an unsigned bundle for later signing with `jarsigner`. For local Gradle signing, set `keystorePath`, `keyAlias`, `NOTES_STORE_PASSWORD` and `NOTES_KEY_PASSWORD`. Keep the key and passwords private.
 
 ```sh
 ./gradlew :app:bundleRelease
@@ -33,7 +33,6 @@ For closed testing, configure AdMob test mode for the exact app version before u
 ## Source and licensing
 The converter is based on [James Ding's sdocx](https://github.com/twangodev/sdocx). Converter sources are in `engine/`, and Android-side integration/rendering code is in `app/`. See [LICENSING.md](LICENSING.md), [MODIFICATIONS.md](MODIFICATIONS.md) and bundled third-party notices. Google SDKs retain their own licenses.
 
-## Status
-Publication preparation based on 1.7.2-preview (version code 10); this source snapshot includes changes made after the previously distributed preview APK. It is not a claim of byte-for-byte correspondence to that APK. No new APK/AAB accompanies this snapshot. Real-device conversion, rewarded-ad and consent testing remain necessary. The included privacy page is a draft pending verification of publisher settings.
+## Contact and version
 
-Publisher: Balog Gergely Sándor — alogergely@gmail.com
+Version 1.7.4 (code 12). For support or privacy requests, email [alogergely@gmail.com](mailto:alogergely@gmail.com). Balog Gergely Sándor deletes support emails and their attachments one month after the support case is closed. The app links to the [published privacy policy](https://cubicrush.github.io/Notes-to-PDF-Vector-Export/Notes-to-PDF-Vector-Export/docs/privacy.html).

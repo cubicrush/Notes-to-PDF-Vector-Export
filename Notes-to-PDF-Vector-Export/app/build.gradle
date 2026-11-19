@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 def pub = new Properties()
 def pubFile = rootProject.file('publisher.properties')
 if (pubFile.exists()) pubFile.withInputStream { pub.load(it) }
-def value = { key, fallback -> pub.getProperty(key, fallback) }
+def value = { key, fallback -> pub.getProperty(key)?.trim() ?: fallback }
 def quoted = { text -> '"' + text.replace('\\', '\\\\').replace('"','\\"') + '"' }
 android {
     namespace 'hu.notesexport.pdf'
@@ -12,10 +12,11 @@ android {
         applicationId 'hu.notesexport.pdf.fixed'
         minSdk 26
         targetSdk 36
-        versionCode 10
-        versionName '1.7.2-preview'
-        buildConfigField 'String', 'PRIVACY_URL', quoted(value('privacyUrl',''))
-        buildConfigField 'String', 'SOURCE_URL', quoted(value('sourceUrl','https://github.com/cubicrush/Notes-to-PDF-Vector-Export'))
+        versionCode 12
+        versionName '1.7.4'
+        buildConfigField 'boolean', 'DEMO_ADS', 'false'
+        buildConfigField 'String', 'PRIVACY_URL', quoted(value('privacyUrl','https://cubicrush.github.io/Notes-to-PDF-Vector-Export/Notes-to-PDF-Vector-Export/docs/privacy.html'))
+        buildConfigField 'String', 'SOURCE_URL', quoted(value('sourceUrl','https://github.com/cubicrush/Notes-to-PDF-Vector-Export/tree/main/Notes-to-PDF-Vector-Export'))
     }
     buildFeatures { buildConfig true }
     sourceSets {
@@ -32,11 +33,12 @@ android {
     }
     buildTypes {
         debug {
+            buildConfigField 'boolean', 'DEMO_ADS', 'true'
             manifestPlaceholders = [admobAppId: 'ca-app-pub-3940256099942544~3347511713']
             buildConfigField 'String', 'REWARDED_AD_UNIT', '"ca-app-pub-3940256099942544/5224354917"'
         }
         release {
-            signingConfig signingConfigs.publisher
+            if (pub.getProperty('keystorePath')?.trim()) signingConfig signingConfigs.publisher
             manifestPlaceholders = [admobAppId: value('admobAppId','unconfigured')]
             buildConfigField 'String', 'REWARDED_AD_UNIT', quoted(value('rewardedAdUnitId',''))
         }
@@ -50,7 +52,7 @@ dependencies {
 }
 tasks.register('verifyPublisherConfiguration') {
     doLast {
-        ['admobAppId','rewardedAdUnitId','privacyUrl','sourceUrl','keystorePath'].each {
+        ['admobAppId','rewardedAdUnitId','privacyUrl','sourceUrl'].each {
             if (!pub.getProperty(it)) throw new GradleException('Missing publisher.properties value: ' + it)
         }
         if (!(pub.admobAppId ==~ /ca-app-pub-[0-9]{16}~[0-9]{10}/) || !(pub.rewardedAdUnitId ==~ /ca-app-pub-[0-9]{16}\/[0-9]{10}/)) throw new GradleException('Invalid AdMob IDs')
