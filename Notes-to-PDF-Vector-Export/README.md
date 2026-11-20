@@ -10,6 +10,8 @@ Android app that converts shared Samsung Notes (`.sdocx`) files into PDFs on the
 
 Free image export works offline, without a daily quota. Vector export unlocks only after the SDK reports the reward; closing an ad early does not unlock it. Ad availability requires connectivity and is not guaranteed. Images remain raster images inside vector PDFs. Some Samsung Notes elements may render differently.
 
+The converter uses Android System WebView. If the installed WebView cannot start the PDF engine, the app shows how to update it.
+
 There is no Pro tier, purchase or subscription.
 
 ## Build
@@ -35,4 +37,4 @@ The converter is based on [James Ding's sdocx](https://github.com/twangodev/sdoc
 
 ## Contact and version
 
-Version 1.7.4 (code 12). For support or privacy requests, email [alogergely@gmail.com](mailto:alogergely@gmail.com). Balog Gergely Sándor deletes support emails and their attachments one month after the support case is closed. The app links to the [published privacy policy](https://cubicrush.github.io/Notes-to-PDF-Vector-Export/Notes-to-PDF-Vector-Export/docs/privacy.html).
+Version 1.7.5 (code 13). For support or privacy requests, email [alogergely@gmail.com](mailto:alogergely@gmail.com). Balog Gergely Sándor deletes support emails and their attachments one month after the support case is closed. The app links to the [published privacy policy](https://cubicrush.github.io/Notes-to-PDF-Vector-Export/Notes-to-PDF-Vector-Export/docs/privacy.html).

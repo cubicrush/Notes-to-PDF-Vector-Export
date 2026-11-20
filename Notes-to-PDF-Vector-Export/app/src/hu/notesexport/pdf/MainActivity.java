@@ -69,6 +69,7 @@ public final class MainActivity extends Activity {
     private String pdfName = "Note.pdf";
     private String renderedStatus = "";
     private boolean ready;
+    private boolean engineStartupFailed;
     private boolean busy;
     private boolean converted;
 
@@ -204,6 +205,7 @@ public final class MainActivity extends Activity {
     }
 
     private void setupEngine() {
+        engineStartupFailed = false;
         engine = new WebView(this);
         engine.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
         root.addView(engine, new LinearLayout.LayoutParams(1, 1));
@@ -222,6 +224,7 @@ public final class MainActivity extends Activity {
                         !("GET".equals(request.getMethod()))) return missing();
                 try {
                     switch (url.getPath()) {
+                        case "/engine-startup.js": return asset("engine-startup.js", "text/javascript", "utf-8");
                         case "/engine.html": return asset("engine.html", "text/html", "utf-8");
                         case "/page-size.js": return asset("page-size.js", "text/javascript", "utf-8");
                         case "/pdf-lib.js": return asset("pdf-lib.js", "text/javascript", "utf-8");
@@ -288,7 +291,7 @@ public final class MainActivity extends Activity {
         choose.setAlpha(choose.isEnabled() ? 1f : .5f);
         save.setEnabled(converted && !busy && !adShowing && !destinationOpen);
         save.setAlpha(save.isEnabled() ? 1f : .5f);
-        progress.setVisibility(busy || !ready ? View.VISIBLE : View.GONE);
+        progress.setVisibility(busy || (!ready && !engineStartupFailed) ? View.VISIBLE : View.GONE);
     }
 
     private void pickNote() {
@@ -603,16 +606,29 @@ public final class MainActivity extends Activity {
     private final class PdfBridge {
         private FileOutputStream stream;
 
+        @JavascriptInterface public void startupFailed() {
+            runOnUiThread(() -> {
+                if (isDestroyed() || ready || engineStartupFailed) return;
+                engineStartupFailed = true;
+                updateButtons();
+                if (!converted) {
+                    status.setText("The PDF engine could not start. Update Android System WebView or Google Chrome in your app store, then reopen Notes to PDF.");
+                }
+            });
+        }
+
         @JavascriptInterface public void ready() {
             runOnUiThread(() -> {
                 if (isDestroyed()) return;
+                boolean recovered = engineStartupFailed;
+                engineStartupFailed = false;
                 ready = true;
                 updateButtons();
                 if (pendingNote != null) {
                     Uri uri = pendingNote;
                     pendingNote = null;
                     openNote(uri);
-                } else if (status.getText().toString().equals("Loading PDF engine…")) {
+                } else if (!converted && (recovered || status.getText().toString().equals("Loading PDF engine…"))) {
                     status.setText("Choose a note to begin.");
                 }
             });

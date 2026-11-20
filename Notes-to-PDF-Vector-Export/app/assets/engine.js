@@ -37,7 +37,8 @@ export async function start(bridge) {
     try {
         await init();
     } catch (error) {
-        bridge.error('Could not start the PDF engine. Update Android System WebView.', String(error));
+        if (typeof bridge.startupFailed === 'function') bridge.startupFailed();
+        else bridge.error('Could not start the PDF engine. Update Android System WebView.', String(error));
         return;
     }
 

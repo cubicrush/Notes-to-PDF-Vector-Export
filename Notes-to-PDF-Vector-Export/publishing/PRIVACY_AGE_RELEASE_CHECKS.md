@@ -1,4 +1,4 @@
-# Privacy and age handling — 1.7.4
+# Privacy and age handling — 1.7.5
 
 The repository layout and Pages main/root setting are retained.
 Privacy URL: https://cubicrush.github.io/Notes-to-PDF-Vector-Export/Notes-to-PDF-Vector-Export/docs/privacy.html

@@ -12,8 +12,8 @@ android {
         applicationId 'hu.notesexport.pdf.fixed'
         minSdk 26
         targetSdk 36
-        versionCode 12
-        versionName '1.7.4'
+        versionCode 13
+        versionName '1.7.5'
         buildConfigField 'boolean', 'DEMO_ADS', 'false'
         buildConfigField 'String', 'PRIVACY_URL', quoted(value('privacyUrl','https://cubicrush.github.io/Notes-to-PDF-Vector-Export/Notes-to-PDF-Vector-Export/docs/privacy.html'))
         buildConfigField 'String', 'SOURCE_URL', quoted(value('sourceUrl','https://github.com/cubicrush/Notes-to-PDF-Vector-Export/tree/main/Notes-to-PDF-Vector-Export'))
